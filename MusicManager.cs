@@ -119,6 +119,7 @@ namespace MusicManager
              VanillaSongInfo.CreateVanillaSong("mx_warpguardian_theme_one", true, false, true, true),
              VanillaSongInfo.CreateVanillaSong("mx_warpguardian_theme_two", true, false, true, true)
         };
+
         void Awake()
         {
             if (Instance != null)
@@ -128,6 +129,7 @@ namespace MusicManager
             Instance = this;
             source = gameObject.AddComponent<UnityEngine.AudioSource>();
             source.loop = false;
+            source.volume = Settings.Volume.Value;
             SongData.Add(new SongCategoryData(Mod.Instance.MusicDirectory));
             foreach (DirectoryInfo directory in Mod.Instance.MusicSubDirectories)
             {
@@ -138,28 +140,29 @@ namespace MusicManager
         }
         void Update()
         {
-            if (Settings.Enabled)
+            if (!Settings.Enabled || source == null) return;
+
+            if (!PlayingVanillaMusic)
             {
-                if (!PlayingVanillaMusic)
+                if (!source.isPlaying)
                 {
-                    if (source != null)
-                    {
-                        if (!source.isPlaying)
-                        {
-                            PlayNext();
-                        }
-                    }
+                    PlayNext();
                 }
-                //if (!PLNetworkManager.Instance.IsTyping && PLInput.Instance.GetButtonDown("MusicMenu"))
-                //{
-                //    if (songs.Count > 0)
-                //    {
-                //        source.clip = songs[UnityEngine.Random.Range(0, songs.Count - 1)];
-                //    }
-                //}
             }
-            
+            if (Settings.IsOpen)
+            {
+                source.volume = Settings.Volume.Value;
+            }
+
+            //if (!PLNetworkManager.Instance.IsTyping && PLInput.Instance.GetButtonDown("MusicMenu"))
+            //{
+            //    if (songs.Count > 0)
+            //    {
+            //        source.clip = songs[UnityEngine.Random.Range(0, songs.Count - 1)];
+            //    }
+            //}
         }
+
         void StopLoadingNextSong()
         {
             songLoaderCancelation.Cancel();
