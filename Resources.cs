@@ -14,6 +14,8 @@ namespace MusicManager
         public static Texture2D LoadResourcePNG(string name)
         {
             Texture2D tex = null;
+            //Properties.Resources.arrow_down;
+            //typeof(Properties.Resources).GetProperty();
             Stream stream = Mod.Instance.assembly.GetManifestResourceStream(string.Concat("MusicManager.Resources.",name));
             byte[] fileData;
             using (MemoryStream memoryStream = new MemoryStream())

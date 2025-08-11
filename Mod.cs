@@ -15,6 +15,7 @@ namespace MusicManager
         internal DirectoryInfo MusicDirectory;
         internal bool Enabled = false;
         internal List<FileInfo> Songs = new List<FileInfo>();
+        internal List<DirectoryInfo> MusicSubDirectories = new List<DirectoryInfo>();
         internal Assembly assembly = Assembly.GetExecutingAssembly();
         public Mod()
         {
@@ -23,9 +24,12 @@ namespace MusicManager
             if (!Directory.Exists(PathInfo))
             {
                 Debug.Log("Creating Directory");
-                Directory.CreateDirectory(PathInfo);
+                MusicDirectory = Directory.CreateDirectory(PathInfo);
             }
-            MusicDirectory = new DirectoryInfo(PathInfo);
+            else
+            {
+                MusicDirectory = new DirectoryInfo(PathInfo);
+            }
             if (MusicDirectory == null || !MusicDirectory.Exists)
             {
                 Debug.Log("Music Directory Doesn't Exist");
@@ -35,6 +39,11 @@ namespace MusicManager
             if (Songs.Count < 1)
             {
                 Debug.Log("No Music Found");
+            }
+            MusicSubDirectories = MusicDirectory.GetDirectories().ToList<DirectoryInfo>();
+            if (MusicSubDirectories.Count < 1)
+            {
+                Debug.Log("No subdirectories found");
             }
         }
         public override string Version => "1.0.0";

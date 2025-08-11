@@ -15,7 +15,7 @@ namespace MusicManager
         static void Postfix()
         {
             Debug.Log("Ran MusicManager adder");
-            MusicManager.Instance = PLNetworkManager.Instance.gameObject.AddComponent<MusicManager>();
+            PLNetworkManager.Instance.gameObject.AddComponent<MusicManager>();
         }
     }
     [HarmonyPatch(typeof(PLMusic), "PlayMusic")]
@@ -29,12 +29,17 @@ namespace MusicManager
                 MusicManager.Instance.PlayingVanillaMusic = true;
                 return true;
             }
+            isLoopingTrack = false;
             if (MusicManager.Instance.StartVanillaMusic)
             {
                 MusicManager.Instance.PlayingVanillaMusic = true;
             }
             else
             {
+                if (!MusicManager.Instance.PlayingVanillaMusic)
+                {
+                    PLMusic.Instance.m_CurrentPlayingMusicEventString = inMusicString;
+                }
                 PLMusic.Instance.m_CombatMusicPlaying = isCombatTrack;
                 PLMusic.Instance.m_PlanetMusicPlaying = isPlanetTrack;
                 PLMusic.Instance.m_LoopingMusicPlaying = false;
@@ -70,12 +75,12 @@ namespace MusicManager
             return MusicManager.Instance.EndVanillaMusic;
         }
     }
-    [HarmonyPatch(typeof(PLUIMainMenu), "ClickQuit")]
+    [HarmonyPatch(typeof(PLGlobal), "OnApplicationQuit")]
     class QuitSavePatch
     {
         static void Prefix()
         {
-            MusicManager.Instance.SongClassification.OutputJson();
+            MusicManager.Instance.OutputAllJson();
         }
     }
 

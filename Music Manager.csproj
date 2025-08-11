@@ -619,6 +619,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Command.cs" />
+    <Compile Include="SongInfoTypes.cs" />
     <Compile Include="GUI.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="MusicManager.cs" />
@@ -630,7 +631,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Resources.cs" />
-    <Compile Include="SongInfoStruct.cs" />
+    <Compile Include="SongCategorization.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
