@@ -119,6 +119,7 @@ namespace MusicManager
              VanillaSongInfo.CreateVanillaSong("mx_warpguardian_theme_one", true, false, true, true),
              VanillaSongInfo.CreateVanillaSong("mx_warpguardian_theme_two", true, false, true, true)
         };
+
         void Awake()
         {
             if (Instance != null)
@@ -128,6 +129,7 @@ namespace MusicManager
             Instance = this;
             source = gameObject.AddComponent<UnityEngine.AudioSource>();
             source.loop = false;
+            source.volume = Settings.Volume.Value;
             SongData.Add(new SongCategoryData(Mod.Instance.MusicDirectory));
             foreach (DirectoryInfo directory in Mod.Instance.MusicSubDirectories)
             {
@@ -164,6 +166,10 @@ namespace MusicManager
             if (NextSong == null)
             {
                 PrepNextSong();
+            }
+            if (Settings.IsOpen)
+            {
+                source.volume = Settings.Volume.Value;
             }
         }
         void StopLoadingNextSong()

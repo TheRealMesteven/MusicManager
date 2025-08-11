@@ -1,4 +1,5 @@
-﻿using PulsarModLoader.CustomGUI;
+﻿using PulsarModLoader;
+using PulsarModLoader.CustomGUI;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -13,7 +14,7 @@ namespace MusicManager
         internal static bool VanillaMusicEnabled = true;
         internal static Vector2 AllSongsScroll = new Vector2(0, 0);
         internal static bool CategoryOrganizationMode = false;
-        internal static float Volume = 1f;
+        internal static SaveValue<float> Volume = new SaveValue<float>("Volume", 0.2f);
         private static int CurrentCategory = 0;
         private static readonly string[] CategoryNames = new string[] 
         { 
@@ -28,11 +29,20 @@ namespace MusicManager
         {
             return "Music Manager";
         }
+
+        internal static bool IsOpen = false;
         public override void OnOpen()
         {
             base.OnOpen();
-
+            IsOpen = true;
+            tempVanillaMusicVolume = PLXMLOptionsIO.Instance.CurrentOptions.GetFloatValue("VolumeMusic");
         }
+        public override void OnClose()
+        {
+            base.OnClose();
+            IsOpen = false;
+        }
+        float tempVanillaMusicVolume;
         public override void Draw()
         {
             GUILayout.BeginHorizontal();
@@ -41,8 +51,13 @@ namespace MusicManager
             VanillaMusicEnabled = GUILayout.Toggle(VanillaMusicEnabled, "Vanilla Music Enabled");
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"Volume: {Volume * 100}%", GUILayout.MinWidth(100),GUILayout.MaxWidth(100), GUILayout.MaxHeight(25));
-            Volume = GUILayout.HorizontalSlider(Volume, 0f, 1f);
+            GUILayout.Label($"Vanilla Volume: {(tempVanillaMusicVolume * 100).ToString("0.0")}%");
+            tempVanillaMusicVolume = GUILayout.HorizontalSlider(tempVanillaMusicVolume, 0f, 1f);
+            PLXMLOptionsIO.Instance.CurrentOptions.SetFloatValue("VolumeMusic", tempVanillaMusicVolume);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label($"Custom Volume: {(Volume.Value*100).ToString("0.0")}%");
+            Volume.Value = GUILayout.HorizontalSlider(Volume.Value, 0f, 1f);
             GUILayout.EndHorizontal();
             float size = GUILayoutUtility.GetLastRect().width;
             if (MusicManager.Instance.FinishedLoading)
