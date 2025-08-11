@@ -138,27 +138,33 @@ namespace MusicManager
         }
         void Update()
         {
-            if (Settings.Enabled)
+            if (FinishedLoading)
             {
-                if (!PlayingVanillaMusic)
+                if (Settings.Enabled)
                 {
-                    if (source != null)
+                    if (!PlayingVanillaMusic)
                     {
-                        if (!source.isPlaying)
+                        if (source != null)
                         {
-                            PlayNext();
+                            if (!source.isPlaying)
+                            {
+                                PlayNext();
+                            }
                         }
                     }
+                    //if (!PLNetworkManager.Instance.IsTyping && PLInput.Instance.GetButtonDown("MusicMenu"))
+                    //{
+                    //    if (songs.Count > 0)
+                    //    {
+                    //        source.clip = songs[UnityEngine.Random.Range(0, songs.Count - 1)];
+                    //    }
+                    //}
                 }
-                //if (!PLNetworkManager.Instance.IsTyping && PLInput.Instance.GetButtonDown("MusicMenu"))
-                //{
-                //    if (songs.Count > 0)
-                //    {
-                //        source.clip = songs[UnityEngine.Random.Range(0, songs.Count - 1)];
-                //    }
-                //}
             }
-            
+            if (NextSong == null)
+            {
+                PrepNextSong();
+            }
         }
         void StopLoadingNextSong()
         {
@@ -198,7 +204,9 @@ namespace MusicManager
         {
             if (NextSong != null)
             {
+                AudioClip temp = source.clip;
                 source.clip = NextSong;
+                Destroy(temp);
                 source.Play();
             }
             PrepNextSong();
@@ -249,7 +257,7 @@ namespace MusicManager
             await Task.WhenAll(SongFileInitializers);
             for (int i = 0; i < SongData.Count;i++)
             {
-                AllSongs.AddRange(SongData[i].AddedSongs);
+                AllSongs.AddRange(SongData[i].AddedSongs.Where(song => song.song != null));
             }
             AllSongs.AsParallel().Do(song =>
             {
@@ -338,6 +346,10 @@ namespace MusicManager
         private async Task LoadAudioFile(SongInfo song, CancellationToken cancellationToken)
         {
             await Task.Yield();
+            if (song.song == null || !song.song.Exists)
+            {
+                return;
+            }
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
@@ -378,16 +390,18 @@ namespace MusicManager
                 //string url = string.Format("file://{0}", songFile.Name);
                 using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(song.song.FullName, type))
                 {
-                    www.SendWebRequest();
+                    TaskCompletionSource<bool> task = new TaskCompletionSource<bool>();
+                    www.SendWebRequest().completed += (s => { bool res = true; task.TrySetResult(res); });
                     //Debug.Log("Awaiting Completion of load");
-                    while (!www.isDone)
-                    {
-                        await Task.Delay(100);
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            return;
-                        }
-                    }
+                    await task.Task;
+                    //while (!www.isDone)
+                    //{
+                    //    await Task.Delay(100);
+                    //    if (cancellationToken.IsCancellationRequested)
+                    //    {
+                    //        return;
+                    //    }
+                    //}
                     if (cancellationToken.IsCancellationRequested)
                     {
                         return;
@@ -417,6 +431,7 @@ namespace MusicManager
         {
             SongData.Clear();
             SongData.Add(new SongCategoryData(Mod.Instance.MusicDirectory));
+            Mod.Instance.MusicSubDirectories = Mod.Instance.MusicDirectory.GetDirectories();
             foreach (DirectoryInfo directory in Mod.Instance.MusicSubDirectories)
             {
                 SongData.Add(new SongCategoryData(directory));
@@ -425,10 +440,12 @@ namespace MusicManager
         internal async Task ReloadSongs()
         {
             FinishedLoading = false;
+            StopLoadingNextSong();
             OutputAllJson();
             AllSongs.Clear();
             ReloadDirectories();
             await GetSongsFromFolder();
+            PrepNextSong();
             FinishedLoading = true;
         }
         //IEnumerator ConvertFileToAudioClip(FileInfo songFile)

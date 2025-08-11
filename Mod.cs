@@ -15,7 +15,7 @@ namespace MusicManager
         internal DirectoryInfo MusicDirectory;
         internal bool Enabled = false;
         internal List<FileInfo> Songs = new List<FileInfo>();
-        internal List<DirectoryInfo> MusicSubDirectories = new List<DirectoryInfo>();
+        internal DirectoryInfo[] MusicSubDirectories = new DirectoryInfo[0];
         internal Assembly assembly = Assembly.GetExecutingAssembly();
         public Mod()
         {
@@ -40,8 +40,8 @@ namespace MusicManager
             {
                 Debug.Log("No Music Found");
             }
-            MusicSubDirectories = MusicDirectory.GetDirectories().ToList<DirectoryInfo>();
-            if (MusicSubDirectories.Count < 1)
+            MusicSubDirectories = MusicDirectory.GetDirectories();
+            if (MusicSubDirectories.Length < 1)
             {
                 Debug.Log("No subdirectories found");
             }

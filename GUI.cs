@@ -1,6 +1,7 @@
 ﻿using PulsarModLoader.CustomGUI;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace MusicManager
 {
@@ -13,7 +14,7 @@ namespace MusicManager
         internal static Vector2 AllSongsScroll = new Vector2(0, 0);
         internal static bool CategoryOrganizationMode = false;
         internal static float Volume = 1f;
-        private int _currentCategory = 0;
+        private static int CurrentCategory = 0;
         private static readonly string[] CategoryNames = new string[] 
         { 
             "Combat Music",
@@ -40,9 +41,10 @@ namespace MusicManager
             VanillaMusicEnabled = GUILayout.Toggle(VanillaMusicEnabled, "Vanilla Music Enabled");
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label($"Volume: {Volume}");
+            GUILayout.Label($"Volume: {Volume * 100}%", GUILayout.MinWidth(100),GUILayout.MaxWidth(100), GUILayout.MaxHeight(25));
             Volume = GUILayout.HorizontalSlider(Volume, 0f, 1f);
             GUILayout.EndHorizontal();
+            float size = GUILayoutUtility.GetLastRect().width;
             if (MusicManager.Instance.FinishedLoading)
             {
                 GUILayout.BeginHorizontal();
@@ -53,7 +55,7 @@ namespace MusicManager
                 CategoryOrganizationMode = GUILayout.Toggle(CategoryOrganizationMode, "Organize Songs");
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GUILayout.BeginVertical();
+                GUILayout.BeginVertical(GUILayout.ExpandWidth(true));
                 GUILayout.Box("All Songs");
                 AllSongsScroll = GUILayout.BeginScrollView(AllSongsScroll, false, true);
                 for (int i = 0; i < MusicManager.Instance.AllSongs.Count; i++)
@@ -66,9 +68,9 @@ namespace MusicManager
                         }
                         else
                         {
-                            switch (_currentCategory)
+                            switch (CurrentCategory)
                             {
-                                case 0:
+                                default:
                                     MusicManager.Instance.AllSongs[i].IsCombatTrack = !MusicManager.Instance.AllSongs[i].IsCombatTrack;
                                     break;
                                 case 1:
@@ -97,33 +99,33 @@ namespace MusicManager
 
                 if (CategoryOrganizationMode)
                 {
-                    GUILayout.BeginVertical();
+                    GUILayout.BeginVertical(GUILayout.MaxWidth((size/2) - 5),GUILayout.ExpandWidth(true));
                     GUILayout.BeginHorizontal();
                     if (GUILayout.Button("<-"))
                     {
                         CategoriesScroll = new Vector2(0, 0);
-                        if (_currentCategory == 0)
+                        if (CurrentCategory == 0)
                         {
-                            _currentCategory = 3;
+                            CurrentCategory = 3;
                         }
-                        _currentCategory--;
+                        CurrentCategory--;
                     }
-                    GUILayout.Box($"{CategoryNames[_currentCategory]}");
+                    GUILayout.Box($"{CategoryNames[CurrentCategory]}");
                     if (GUILayout.Button("->"))
                     {
                         CategoriesScroll = new Vector2(0, 0);
-                        if (_currentCategory == 3)
+                        if (CurrentCategory == 3)
                         {
-                            _currentCategory = 0;
+                            CurrentCategory = 0;
                         }
-                        _currentCategory++;
+                        CurrentCategory++;
                     }
                     GUILayout.EndHorizontal();
 
                     CategoriesScroll = GUILayout.BeginScrollView(CategoriesScroll, false, true);
                     List<SongInfo> categorySongs = MusicManager.Instance.AllSongs.FindAll(song =>
                     {
-                        switch (_currentCategory)
+                        switch (CurrentCategory)
                         {
                             default:
                                 return song.IsCombatTrack;
@@ -137,20 +139,23 @@ namespace MusicManager
                     });
                     for (int i = 0; i < categorySongs.Count; i++)
                     {
-                        switch (_currentCategory)
+                        if (GUILayout.Button($"{categorySongs[i].Name}"))
                         {
-                            case 0:
-                                categorySongs[i].IsCombatTrack = !categorySongs[i].IsCombatTrack;
-                                break;
-                            case 1:
-                                categorySongs[i].IsAmbientMusic = !categorySongs[i].IsAmbientMusic;
-                                break;
-                            case 2:
-                                categorySongs[i].IsBossMusic = !categorySongs[i].IsBossMusic;
-                                break;
-                            case 3:
-                                categorySongs[i].IsWarpMusic = !categorySongs[i].IsWarpMusic;
-                                break;
+                            switch (CurrentCategory)
+                            {
+                                case 0:
+                                    categorySongs[i].IsCombatTrack = !categorySongs[i].IsCombatTrack;
+                                    break;
+                                case 1:
+                                    categorySongs[i].IsAmbientMusic = !categorySongs[i].IsAmbientMusic;
+                                    break;
+                                case 2:
+                                    categorySongs[i].IsBossMusic = !categorySongs[i].IsBossMusic;
+                                    break;
+                                case 3:
+                                    categorySongs[i].IsWarpMusic = !categorySongs[i].IsWarpMusic;
+                                    break;
+                            }
                         }
                     }
                     GUILayout.EndScrollView();
